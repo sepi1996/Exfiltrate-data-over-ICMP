@@ -3,9 +3,17 @@ import struct
 import os
 #ICMP_CODE = socket.getprotobyname('icmp')
 
+def processData(chunk):
+    print(chunk)
+    chunk.sort()
+    for n in range(len(chunk)):
+        chunk[n] = chunk[n][4:]
+    exit(0)
+
+
 def main():
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
-
+    chunk = []
     while True:
         raw_data, addr = conn.recvfrom(65536)
         print(raw_data)
@@ -27,7 +35,13 @@ def main():
                 print(f'\t type: {i_t}, code: {code}, checksum: {check}')
                 print(f'\t data: {data}')
                 print("\n")
-
+                if int(i_t) == 8:
+                    chunk.append(data)
+                    #print("CHUNK")
+                    #print(chunk)
+                    if data == b'\x7f\xff\xff\xff':
+                        processData(chunk)
+                        
 def ether_frame(data):
     dest_mac, src_mac, eth_proto = struct.unpack('! 6s 6s H', data[:14])
     return get_mac(dest_mac), get_mac(src_mac), socket.htons(eth_proto), data[14:]
@@ -48,7 +62,8 @@ def ipv4(addr):
 
 def icmp_packet(data):
     i_t, code, check = struct.unpack('! B B H', data[:4])
-    return i_t, code, check, data[4:]
+    own_id, seq_number = struct.unpack('! H H', data[4:8])
+    return i_t, code, check, data[8:]
 
 if __name__ == "__main__":
     main()
