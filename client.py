@@ -1,15 +1,16 @@
+mport os
 import os
 import struct
 from scapy.all import *
 
-def sendImage(chunks):
+def sendImage(chunks, ip):
     for n in range(len(chunks)):
-        ping = IP(dst="172.18.0.2")/ICMP()/chunks[n]
+        ping = IP(dst=ip)/ICMP()/chunks[n]
         print(ping)
         send(ping)
 
-def getImageFromDisk():
-    with open("a.txt", "rb") as reader:
+def getImageFromDisk(filename):
+    with open(filename, "rb") as reader:
         image = reader.read()
         chunk = []
         interval = 4
@@ -18,12 +19,20 @@ def getImageFromDisk():
 
         for n in range(len(chunk)):
             chunk[n] = struct.pack(">I", n) + chunk[n]
-            chunk.sort()
-            return chunk
+            print(chunk[n])
+            #chunk.sort()
+        chunk.append(b'\x7f\xff\xff\xff')
+        print (chunk[len(chunk)-1])
+        return chunk
 
 def main():
-    chunks = getImageFromDisk()
-    sendImage(chunks)
+    if len(sys.argv) != 3:
+        print("Usage: python3 client.py ServerIp file")
+    else:
+        ip = str(sys.argv[1])
+        filename = sys.argv[2]
+        chunks = getImageFromDisk(filename)
+        sendImage(chunks, ip)
 
 if __name__ == "__main__":
     main()
