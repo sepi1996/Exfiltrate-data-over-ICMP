@@ -1,4 +1,4 @@
-mport os
+import os
 import os
 import struct
 from scapy.all import *
@@ -13,16 +13,17 @@ def getImageFromDisk(filename):
     with open(filename, "rb") as reader:
         image = reader.read()
         chunk = []
-        interval = 4
+        #interval = 1000
+        interval = 1500 - 20 - 8 - 4
         for n in range(0, len(image), interval):
             chunk.append(image[n:n + interval])
 
         for n in range(len(chunk)):
             chunk[n] = struct.pack(">I", n) + chunk[n]
-            print(chunk[n])
+            #print(chunk[n])
             #chunk.sort()
         chunk.append(b'\x7f\xff\xff\xff')
-        print (chunk[len(chunk)-1])
+        #print (chunk[len(chunk)-1])
         return chunk
 
 def main():
